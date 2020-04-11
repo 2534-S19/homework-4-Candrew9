@@ -16,18 +16,19 @@ int main(void)
     // Stops the Watchdog timer.
     initBoard();
     // Declare a UART config struct as defined in uart.h.
-    //       To begin, configure the UART for 9600 baud, 8-bit payload (LSB first), no parity, 1 stop bit.
+    //
 
     eUSCI_UART_ConfigV1 uartConfig = {
-              EUSCI_A_UART_CLOCKSOURCE_SMCLK,               // SMCLK Clock Source = 10MHz
-              65,                                           // UCBR = 65
-              1,                                            // UCBRF = 1
-              0xD6,                                         // UCBRS = 0xD6
-              EUSCI_A_UART_EVEN_PARITY,                     // Even Parity
+              EUSCI_A_UART_CLOCKSOURCE_SMCLK,               // SMCLK Clock Source = 3MHz
+              19,                                           // UCBR = 19
+              8,                                            // UCBRF = 8
+              0x55,                                         // UCBRS = 0x55
+              EUSCI_A_UART_NO_PARITY,                     // Even Parity
               EUSCI_A_UART_LSB_FIRST,                       // LSB First
               EUSCI_A_UART_ONE_STOP_BIT,                    // One stop bit
               EUSCI_A_UART_MODE,                            // UART mode
-              EUSCI_A_UART_OVERSAMPLING_BAUDRATE_GENERATION // Oversampling
+              EUSCI_A_UART_OVERSAMPLING_BAUDRATE_GENERATION,// oversampling
+              EUSCI_A_UART_8_BIT_LEN                         // 8 bit payload
     };
 
 
@@ -54,7 +55,7 @@ int main(void)
         if(rChar != 0xFF) {
             flag = charFSM(rChar);
             //Checking interrupt here
-            while(UART_getInterruptStatus(EUSCI_A0_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT_FLAG) == 0)
+            while(UART_getInterruptStatus(EUSCI_A0_BASE, EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG) == 1)
             {}
             UART_transmitData(EUSCI_A0_BASE, rChar);
         }
@@ -68,7 +69,8 @@ int main(void)
             while(UART_getInterruptStatus(EUSCI_A0_BASE, EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG) == 0) {
             }
             char *c;
-            for (c = response; c != '\0'; c++) {
+
+            for (c = response; *c != '\0'; c++) {
                 while(UART_getInterruptStatus(EUSCI_A0_BASE, EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG) == 0)
                     {}
                     UART_transmitData(EUSCI_A0_BASE, *c);
